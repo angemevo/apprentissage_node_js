@@ -1,5 +1,4 @@
-import 'dart:convert';
-
+import 'dart:convert'; 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 class ApiService {
@@ -36,5 +35,12 @@ class ApiService {
     } else {
       throw Exception('Erreur de création');
     }
+  }
+
+  // Supprimer une note
+  Future<void> delateNote(String id) async {
+    await http.delete(
+      Uri.parse('$baseUrl/notes/$id')
+    );
   }
 }
