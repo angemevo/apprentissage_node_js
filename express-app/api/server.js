@@ -1,7 +1,12 @@
 const express = require('express');
 const cors = require('cors')
 const connectDB = require('./config/database');
-const Note = require('./models/note');
+const Note = require('./models/Note');
+const authRoute = require('./routes/auth');
+const authMiddleware = require('./middleware/auth')
+
+console.log('Type de authMiddleware:', typeof authMiddleware);
+console.log('authMiddleware est une fonction ?', typeof authMiddleware === 'function');
 
 const app = express();
 
@@ -11,8 +16,11 @@ app.use(express.json());
 
 connectDB();
 
+// Route d'authentification 
+app.use('/api/auth', authRoute);    
+
 // Création des notes
-app.post('/api/notes', async function (req, res) {
+app.post('/api/notes', authMiddleware, async function (req, res) {
     try {
         const { titre, contenu } = req.body;
 
@@ -66,14 +74,14 @@ app.get('/api/notes/:id', async function (req, res) {
 });
 
 // Modification d'une note 
-app.put('/api/notes/:id', async function(res, req) {
+app.put('/api/notes/:id', authMiddleware, async function(req, res) {
     try {
         const { titre, contenu, complete } = req.body;
 
-        const note = await new Note.findByIdAndUpdate(
+        const note = await Note.findByIdAndUpdate(
             req.params.id,
             { titre, contenu, complete },
-            {new: true, runValidator: true}
+            {new: true, runValidators: true}
         );
 
         if (!note) {
@@ -87,7 +95,7 @@ app.put('/api/notes/:id', async function(res, req) {
 });
 
 // Supprimer une note
-app.delete('/api/notes/:id', async function(req, res) {
+app.delete('/api/notes/:id',authMiddleware, async function(req, res) {
     try {
         const note = await Note.findByIdAndDelete(req.params.id);
 
