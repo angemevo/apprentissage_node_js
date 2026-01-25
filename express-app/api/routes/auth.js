@@ -9,7 +9,19 @@ const JWT_SECRET = 'votre_secret_super_securise_changez_moi_123';
 // Inscription
 router.post('/register', async function(req, res) {
     try {
+        console.log('🟣 Requête reçue !');
+        console.log('🟣 Headers:', req.headers);
+        console.log('🟣 Body:', req.body);
+        console.log('🟣 Body.email:', req.body.email);
+        console.log('🟣 Body.password:', req.body.password);
+        console.log('🟣 Body.nom:', req.body.nom);
+
         const { email, nom, password } = req.body;
+
+        console.log('🟣 Après destructuration:');
+        console.log('🟣 email:', email);
+        console.log('🟣 password:', password);
+        console.log('🟣 nom:', nom);
 
         // vérifier si l'utilisateur existe déja 
         const existingUser = await User.findOne({ email });

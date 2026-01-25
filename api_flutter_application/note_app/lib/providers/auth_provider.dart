@@ -44,6 +44,8 @@ class AuthProvider with ChangeNotifier{
     _errorMessage = null;
     notifyListeners();
 
+    print('🟡 AuthProvider reçoit - email: $email, nom: $nom, password: $password, length: ${password.length}');
+
     try {
       final data = await _api.register(
         email: email, 

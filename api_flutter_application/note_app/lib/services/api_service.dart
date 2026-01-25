@@ -22,18 +22,40 @@ class ApiService {
     required String password
   }) async {
     try {
+      print('🔵 URL: ${ApiConstants.baseUrl}${ApiConstants.register}');  // ✓ AJOUTÉ
+      print('🔵 Body AVANT encode: email=$email, nom=$nom, password=$password, length=${password.length}');
+
+
+      final bodyMap = {
+        'email': email,
+        'password': password,
+        'nom': nom,
+      };
+      
+      print('🔵 Body Map: $bodyMap');  // ✓ AJOUTÉ
+      
+      final encodedBody = json.encode(bodyMap);
+      print('🔵 Body APRÈS encode: $encodedBody');  
+
+
       final response = await http.post(
         Uri.parse('${ApiConstants.baseUrl}${ApiConstants.register}'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
           'email' : email,
-          'passord' : password,
+          'password' : password,
           'nom' : nom
         })
       );
 
+      
+      print('🔵 Status Code: ${response.statusCode}');  // ✓ AJOUTÉ
+      print('🔵 Response Body: ${response.body}');
+
       if (response.statusCode == 201) {
         final data = json.decode(response.body);
+
+        print('🟢 Token reçu: ${data['token']}');
 
         // Sauvegarder le token et les infos User
         await _storage.saveToken(data['token']);
@@ -43,12 +65,18 @@ class ApiService {
           data['user']['nom'],
         );
 
+        final savedToken = _storage.getToken();
+        print('🟢 Token sauvegardé: $savedToken');
+        print('🟢 Tokens identiques? ${data['token'] == savedToken}');
+
         return data;
       } else {
         final error = json.decode(response.body);
+        print('🔴 Erreur backend: ${error}'); 
         throw Exception(error[error] ?? 'Erreur lors de l\'inscription');
       }
     } catch (e) {
+      print('🔴 Exception complète: $e');
       throw Exception('Erreur de connexion : $e');
     }
   }
@@ -65,11 +93,11 @@ class ApiService {
         headers: {'Content-Type' : 'application/json'},
         body: json.encode({
           'email' : email,
-          'passord' : password,
+          'password' : password,
         })
       );
 
-      if (response.statusCode == 201) {
+      if (response.statusCode == 200) {
         final data = json.decode(response.body);
 
         // Sauvegarder le token et les infos User
@@ -83,6 +111,7 @@ class ApiService {
         return data;
       } else {
         final error = json.decode(response.body);
+        print('🔴 Erreur backend: ${error}'); 
         throw Exception(error[error] ?? 'Erreur lors de la connexion');
       }
     } catch (e) {
@@ -102,9 +131,13 @@ class ApiService {
   /// Headers avec authentification  
   Map<String, String> _getAuthHeader() {
     final token = _storage.getToken();
+
+    print('🔵 Token récupéré pour requête: $token');
+    print('🔵 Token est null? ${token == null}');
+  
     return {
       'Content-Type' : 'application/json',
-      'Authorization' : 'Beare $token',
+      'Authorization' : 'Bearer $token',
     };
   } 
 
@@ -147,9 +180,12 @@ class ApiService {
   // Créer une note 
   Future<Note> createNote({required String titre, required String contenu}) async {
     try {
+      final headers = _getAuthHeader();
+      print('🔵 Headers envoyés: $headers');
+
       final response = await http.post(
         Uri.parse('${ApiConstants.baseUrl}${ApiConstants.notes}'),
-        headers: _getAuthHeader(),
+        headers: headers,
         body: json.encode(
           {
             'titre' : titre,
@@ -157,6 +193,9 @@ class ApiService {
           }
         )
       );
+
+      print('🔵 Status Code: ${response.statusCode}');
+      print('🔵 Response: ${response.body}');
 
       if (response.statusCode == 201) {
         final data = json.decode(response.body);
@@ -166,6 +205,7 @@ class ApiService {
         throw Exception(error['error'] ?? 'Erreur lors de la création');
       }
     } catch (e) {
+      print('🔴 Erreur backend: ${e}'); 
       throw Exception('Erreur de connexion : $e');
     }
   }
